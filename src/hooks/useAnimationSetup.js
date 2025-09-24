@@ -108,10 +108,10 @@ export const useAnimationSetup = (mountRef) => {
     Object.assign(video2.style, video2Style);
     
     // Set video sources and properties
-    video1.src = "/sample1.mp4";
+    video1.src = "/hero1.mp4";
     Object.assign(video1, VIDEO_CONFIG);
     
-    video2.src = "/sample2.mp4";
+    video2.src = "/hero2.mp4";
     Object.assign(video2, { ...VIDEO_CONFIG, autoplay: false, loop: false });
     video2.style.opacity = "0"; // Hidden initially
     
@@ -208,7 +208,7 @@ export const useAnimationSetup = (mountRef) => {
 
     // ==================== VIDEO SWAP & SCROLL CONTROL ====================
      
-     // Video swap: Cross-fade from sample1 (small) to sample2 (fullscreen) when section 3 bottom meets section 4 top
+     // Video swap: Cross-fade from hero1 (small) to hero2 (fullscreen) when section 3 bottom meets section 4 top
      gsap.to({}, {
        scrollTrigger: {
          trigger: ".section-3",
@@ -217,7 +217,7 @@ export const useAnimationSetup = (mountRef) => {
          onEnter: () => {
            // Switch to fullscreen video2
            video2.currentTime = 0; // Start from beginning
-           updateVideoState('sample2'); // Update video state
+           updateVideoState('hero2'); // Update video state
            // Hide video1 container first, then show video2
            gsap.to(gifElement, { 
              opacity: 0, 
@@ -230,7 +230,7 @@ export const useAnimationSetup = (mountRef) => {
          onLeaveBack: () => {
            // Switch back to small video1
            video1.currentTime = 0; // Reset to beginning
-           updateVideoState('sample1'); // Update video state
+           updateVideoState('hero1'); // Update video state
            // Hide video2 first, then show video1 container
            gsap.to(video2, { 
              opacity: 0, 
@@ -243,7 +243,7 @@ export const useAnimationSetup = (mountRef) => {
        },
      });
 
-     // Scroll-based video playback control (only for sample2 in section 4)
+     // Scroll-based video playback control (only for hero2 in section 4)
      gsap.to(video2, {
        scrollTrigger: {
          trigger: ".section-4",
