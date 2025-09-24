@@ -17,7 +17,7 @@ const Section4 = () => {
         <p style={createResponsiveTextStyle('p')}>The future beyond imagination</p>
       </div>
       
-      {/* Video Text Overlay - appears only when sample2 video is fullscreen */}
+      {/* Video Text Overlay - appears only when hero2 video is fullscreen */}
       <VideoTextOverlay text="EVERYTHING" isVisible={isVideo2Active} />
     </SectionWrapper>
   );

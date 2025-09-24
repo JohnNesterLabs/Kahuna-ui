@@ -29,11 +29,11 @@ const SectionWrapper = ({
         ...style
       }}
     >
-      {sectionTitle && (
+      {/* {sectionTitle && (
         <div style={createSectionLabelStyle()}>
           SECTION {sectionNumber} - {sectionTitle}
         </div>
-      )}
+      )} */}
       {children}
     </section>
   );

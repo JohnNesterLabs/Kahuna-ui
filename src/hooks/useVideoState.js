@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 
 // Global state for video tracking
-let currentVideoState = 'sample1';
+let currentVideoState = 'hero1';
 let listeners = new Set();
 
 const setVideoState = (newState) => {
@@ -26,8 +26,8 @@ export const useVideoState = () => {
 
   return {
     activeVideo: videoState,
-    isVideo2Active: videoState === 'sample2',
-    isVideo1Active: videoState === 'sample1',
+    isVideo2Active: videoState === 'hero2',
+    isVideo1Active: videoState === 'hero1',
   };
 };
 
