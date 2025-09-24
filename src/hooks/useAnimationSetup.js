@@ -20,6 +20,7 @@ import {
   debounce,
   updateScrollIndicators
 } from '../utils';
+import { updateVideoState } from './useVideoState';
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -99,7 +100,7 @@ export const useAnimationSetup = (mountRef) => {
       left: "0",
       opacity: "0",
       transition: "opacity 0.3s ease-in-out",
-      zIndex: "1"
+      zIndex: "6" // Higher than video1 container to appear on top
     };
     
     // Apply styling to both videos
@@ -216,14 +217,28 @@ export const useAnimationSetup = (mountRef) => {
          onEnter: () => {
            // Switch to fullscreen video2
            video2.currentTime = 0; // Start from beginning
-           gsap.to(gifElement, { opacity: 0, duration: COMMON_STYLES.TRANSITION_DURATION }); // Hide video1 container
-           gsap.to(video2, { opacity: 1, duration: COMMON_STYLES.TRANSITION_DURATION }); // Show fullscreen video2
+           updateVideoState('sample2'); // Update video state
+           // Hide video1 container first, then show video2
+           gsap.to(gifElement, { 
+             opacity: 0, 
+             duration: COMMON_STYLES.TRANSITION_DURATION,
+             onComplete: () => {
+               gsap.to(video2, { opacity: 1, duration: COMMON_STYLES.TRANSITION_DURATION });
+             }
+           });
          },
          onLeaveBack: () => {
            // Switch back to small video1
            video1.currentTime = 0; // Reset to beginning
-           gsap.to(video2, { opacity: 0, duration: COMMON_STYLES.TRANSITION_DURATION }); // Hide fullscreen video2
-           gsap.to(gifElement, { opacity: 1, duration: COMMON_STYLES.TRANSITION_DURATION }); // Show video1 container
+           updateVideoState('sample1'); // Update video state
+           // Hide video2 first, then show video1 container
+           gsap.to(video2, { 
+             opacity: 0, 
+             duration: COMMON_STYLES.TRANSITION_DURATION,
+             onComplete: () => {
+               gsap.to(gifElement, { opacity: 1, duration: COMMON_STYLES.TRANSITION_DURATION });
+             }
+           });
          },
        },
      });
