@@ -8,7 +8,7 @@ const SectionWrapper = ({
   sectionTitle, 
   className = "", 
   style = {},
-  showBorders = true
+  showBorders = false
 }) => {
   const borderColor = SECTION_COLORS[`SECTION_${sectionNumber}`];
   

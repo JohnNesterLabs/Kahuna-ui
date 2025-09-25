@@ -38,7 +38,7 @@ const HomePage = () => {
        />
 
        {/* Visual Layout Indicators */}
-       <LayoutIndicators />
+       {/* <LayoutIndicators /> */}
 
        {/* Sections */}
        <Section1 />

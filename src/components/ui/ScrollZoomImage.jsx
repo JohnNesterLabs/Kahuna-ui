@@ -2,10 +2,10 @@ import React, { useEffect, useRef } from "react";
 import { updateVideoState } from "../../hooks/useVideoState";
 
 const points = [
-  { x: 30, y: 40, card: "c1", text: "This is card 1 text describing point 1." },
-  { x: 70, y: 60, card: "c2", text: "This is card 2 text describing point 2." },
-  { x: 75, y: 30, card: "c3", text: "This is card 3 text describing point 3." },
-  { x: 40, y: 70, card: "c4", text: "This is card 4 text describing point 4." },
+  { x: 35, y: 26, card: "c1", text: "This is card 1 text describing point 1." },
+  { x: 80, y: 63, card: "c2", text: "This is card 2 text describing point 2." },
+  { x: 80, y: 29, card: "c3", text: "This is card 3 text describing point 3." },
+  { x: 40, y: 72, card: "c4", text: "This is card 4 text describing point 4." },
 ];
 
 export default function ScrollZoomImage() {
@@ -138,7 +138,7 @@ export default function ScrollZoomImage() {
           width: '100%',
           height: '100%',
           overflow: 'hidden',
-          background: "url('/frames/frame_0178.jpg') no-repeat center center, linear-gradient(45deg, #333, #666)",
+          background: "url('/frames/frame_0177.jpg') no-repeat center center, linear-gradient(45deg, #333, #666)",
           backgroundSize: 'cover',
           transformOrigin: 'center',
           transition: 'transform 1s ease',
@@ -148,7 +148,7 @@ export default function ScrollZoomImage() {
         {points.map((p, idx) => (
           <React.Fragment key={`point-${idx}`}>
             {/* Point */}
-            <div
+            {/* <div
               style={{
                 position: 'absolute',
                 top: `${p.y}%`,
@@ -163,7 +163,7 @@ export default function ScrollZoomImage() {
                 boxShadow: '0 0 10px rgba(255, 0, 0, 0.5)',
                 cursor: 'pointer',
               }}
-            />
+            /> */}
             
             {/* Card */}
             <div
