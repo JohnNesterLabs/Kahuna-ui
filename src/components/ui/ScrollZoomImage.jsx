@@ -14,30 +14,28 @@ export default function ScrollZoomImage() {
   const containerRef = useRef(null);
 
   useEffect(() => {
-    console.log('ScrollZoomImage component mounted');
     let ticking = false;
-    let scrollZoomStartPosition = 0;
+    let scrollZoomStartPosition = window.scrollY; // Store the scroll position when component mounts
 
     const handleScroll = () => {
       if (!ticking) {
         requestAnimationFrame(() => {
           const scrollTop = window.scrollY;
+          const relativeScrollTop = scrollTop - scrollZoomStartPosition; // Calculate relative scroll
           
-          // Calculate which point should be active based on scroll position
+          // Calculate which point should be active based on relative scroll position
           const step = window.innerHeight;
-          const current = Math.min(Math.floor(scrollTop / step), points.length - 1);
+          const current = Math.min(Math.floor(relativeScrollTop / step), points.length - 1);
 
           const scene = sceneRef.current;
           if (!scene) return;
 
-          console.log('ScrollZoomImage - Current point:', current, 'Scroll position:', scrollTop);
-
           // Default state: Show all points in full screen (no zoom)
-          if (current === 0 && scrollTop < window.innerHeight * 0.5) {
+          // Always start with full view, only zoom when user actively scrolls within this component
+          if (relativeScrollTop < window.innerHeight * 0.5) {
             // Show full view with all points visible
             scene.style.transform = 'scale(1) translate(0%, 0%)';
             scene.style.transition = 'transform 1s ease';
-            console.log('Showing full view with all points');
             
             // Reset all cards to normal state
             points.forEach((pt, index) => {
@@ -60,8 +58,6 @@ export default function ScrollZoomImage() {
             scene.style.transform = `scale(${scale}) translate(${panX}%, ${panY}%)`;
             scene.style.transition = 'transform 1s ease';
 
-            console.log(`Zooming to point ${current + 1}: scale(${scale}) translate(${panX}%, ${panY}%)`);
-
             // Highlight the active card
             points.forEach((pt, index) => {
               const cardEl = cardRefs.current[pt.card];
@@ -72,7 +68,6 @@ export default function ScrollZoomImage() {
                   cardEl.style.background = "rgba(0,0,0,0.95)";
                   cardEl.style.border = "2px solid #fff";
                   cardEl.style.color = "#fff";
-                  console.log('Activating card:', pt.card);
                 } else {
                   cardEl.style.transform = "translate(-50%, -50%) scale(1)";
                   cardEl.style.zIndex = "1";
@@ -90,8 +85,26 @@ export default function ScrollZoomImage() {
       }
     };
 
-    // Initial call to set proper state
+    // Initial call to set proper state - always start with full view
     setTimeout(() => {
+      const scene = sceneRef.current;
+      if (scene) {
+        // Force initial state to full view
+        scene.style.transform = 'scale(1) translate(0%, 0%)';
+        scene.style.transition = 'transform 1s ease';
+        
+        // Reset all cards to normal state
+        points.forEach((pt, index) => {
+          const cardEl = cardRefs.current[pt.card];
+          if (cardEl) {
+            cardEl.style.transform = "translate(-50%, -50%) scale(1)";
+            cardEl.style.zIndex = "1";
+            cardEl.style.background = "rgba(0,0,0,0.85)";
+            cardEl.style.border = "2px solid grey";
+            cardEl.style.color = "grey";
+          }
+        });
+      }
       handleScroll();
     }, 100);
 
@@ -116,52 +129,6 @@ export default function ScrollZoomImage() {
         visibility: 'visible', // Force visibility
       }}
     >
-      {/* Debug indicator */}
-      <div style={{
-        position: 'fixed',
-        top: '20px',
-        right: '20px',
-        background: 'rgba(255, 0, 0, 0.9)',
-        color: 'white',
-        padding: '15px',
-        borderRadius: '5px',
-        zIndex: 1000,
-        fontSize: '14px',
-        fontWeight: 'bold',
-        border: '2px solid white',
-      }}>
-        ScrollZoomImage Active
-      </div>
-      
-      {/* Additional debug info */}
-      <div style={{
-        position: 'fixed',
-        top: '80px',
-        right: '20px',
-        background: 'rgba(0, 255, 0, 0.9)',
-        color: 'black',
-        padding: '10px',
-        borderRadius: '5px',
-        zIndex: 1000,
-        fontSize: '12px',
-      }}>
-        Points: {points.length}
-        <br />
-        Point 1: {points[0]?.x}%, {points[0]?.y}%
-        <br />
-        Point 2: {points[1]?.x}%, {points[1]?.y}%
-        <br />
-        Point 3: {points[2]?.x}%, {points[2]?.y}%
-        <br />
-        Point 4: {points[3]?.x}%, {points[3]?.y}%
-        <br />
-        <br />
-        <strong>Default: Full view of all points</strong>
-        <br />
-        <strong>Scroll to zoom to each point!</strong>
-        <br />
-        Each scroll step = 1 viewport height
-      </div>
       <div 
         ref={sceneRef}
         style={{
@@ -171,7 +138,7 @@ export default function ScrollZoomImage() {
           width: '100%',
           height: '100%',
           overflow: 'hidden',
-          background: "url('/scroll-zoom-image.jpg') no-repeat center center, linear-gradient(45deg, #333, #666)",
+          background: "url('/frames/frame_0178.jpg') no-repeat center center, linear-gradient(45deg, #333, #666)",
           backgroundSize: 'cover',
           transformOrigin: 'center',
           transition: 'transform 1s ease',

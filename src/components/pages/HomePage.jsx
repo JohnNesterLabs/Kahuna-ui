@@ -49,9 +49,6 @@ const HomePage = () => {
        
        {/* Conditionally render ScrollZoomImage when last frame is reached */}
        {isScrollZoomActive && <ScrollZoomImage />}
-       
-       {/* Temporary: Always show ScrollZoomImage for testing */}
-       <ScrollZoomImage />
     </>
   );
 };
