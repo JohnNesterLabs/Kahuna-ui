@@ -3,9 +3,11 @@ import React, { useRef } from "react";
 // Import components
 import { Header, LayoutIndicators } from '../ui';
 import { Section1, Section2, Section3, Section4, Section5 } from '../sections';
+import ScrollZoomImage from '../ui/ScrollZoomImage';
 
 // Import hooks
 import { useAnimationSetup } from '../../hooks';
+import { useVideoState } from '../../hooks/useVideoState';
 
 
 const HomePage = () => {
@@ -13,6 +15,9 @@ const HomePage = () => {
   
   // Use the custom animation setup hook
   useAnimationSetup(mountRef);
+  
+  // Get video state to conditionally render ScrollZoomImage
+  const { isScrollZoomActive } = useVideoState();
 
   return (
     <>
@@ -33,7 +38,7 @@ const HomePage = () => {
        />
 
        {/* Visual Layout Indicators */}
-       {/* <LayoutIndicators /> */}
+       <LayoutIndicators />
 
        {/* Sections */}
        <Section1 />
@@ -41,6 +46,12 @@ const HomePage = () => {
        <Section3 />
        <Section4 />
        <Section5 />
+       
+       {/* Conditionally render ScrollZoomImage when last frame is reached */}
+       {isScrollZoomActive && <ScrollZoomImage />}
+       
+       {/* Temporary: Always show ScrollZoomImage for testing */}
+       <ScrollZoomImage />
     </>
   );
 };

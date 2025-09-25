@@ -120,25 +120,35 @@ export const useAnimationSetup = (mountRef) => {
     const totalFrames = 178; // Updated to match extracted frames from hero2.mp4
     const frameRate = 30; // Frames per second
     const sequenceDuration = totalFrames / frameRate; // Duration in seconds
-    let currentFrame = 0;
+    let currentFrame = 1; // Start from frame 1 (frame_0001.jpg)
     let isSequenceReady = false;
     let preloadedFrames = new Map(); // Cache for preloaded frames
     
     // Preload first few frames for smooth start
     const preloadFrames = async () => {
       const framesToPreload = Math.min(10, totalFrames);
-      for (let i = 0; i < framesToPreload; i++) {
+      for (let i = 1; i <= framesToPreload; i++) { // Start from 1, not 0
         const img = new Image();
-        img.src = `/frames/frame_${String(i).padStart(4, '0')}.jpg`; // Adjust path and format
+        img.src = `/frames/frame_${String(i).padStart(4, '0')}.jpg`;
         preloadedFrames.set(i, img);
       }
       isSequenceReady = true;
       console.log('Image sequence ready for scroll control');
     };
     
-    // Load initial frame
-    imageSequenceImg.src = `/frames/frame_0000.jpg`; // Adjust path and format
+    // Load initial frame (frame_0001.jpg)
+    imageSequenceImg.src = `/frames/frame_0001.jpg`;
     imageSequenceImg.style.opacity = "0"; // Hidden initially
+    
+    // Add error handling for image loading
+    imageSequenceImg.onerror = () => {
+      console.error('Failed to load image sequence frame:', imageSequenceImg.src);
+    };
+    
+    imageSequenceImg.onload = () => {
+      console.log('Image sequence frame loaded:', imageSequenceImg.src);
+    };
+    
     preloadFrames();
     
     // Container styling (responsive for video1)
@@ -161,6 +171,25 @@ export const useAnimationSetup = (mountRef) => {
     // Preload video1 for seamless swapping
     video1.load();
 
+    // ==================== DYNAMIC SCALING SYSTEM ====================
+    // Calculate dynamic scale based on screen height
+    const getDynamicScale = (baseScale) => {
+      const referenceHeight = 730; // Your laptop height as reference
+      const currentHeight = window.innerHeight;
+      const heightRatio = currentHeight / referenceHeight;
+      
+      // Apply scaling factor with some limits to prevent extreme scaling
+      const scaledValue = baseScale * heightRatio;
+      
+      // Clamp the scale between reasonable limits
+      const finalScale = Math.max(1.5, Math.min(6, scaledValue));
+      
+      // Debug logging
+      console.log(`Screen height: ${currentHeight}px, Base scale: ${baseScale}, Final scale: ${finalScale.toFixed(2)}`);
+      
+      return finalScale;
+    };
+
     // ==================== ANIMATION TIMELINE ====================
     // GIF Timeline (smooth across sections)
      const gifTimeline = gsap.timeline({
@@ -180,7 +209,7 @@ export const useAnimationSetup = (mountRef) => {
        top: "50%",
        xPercent: 0,
        yPercent: -50,
-       scale: TIMELINE_SCALES.SECTION_1,
+       scale: getDynamicScale(TIMELINE_SCALES.SECTION_1),
      }); 
 
      // Section 1 to mid-Section 2: Move to center
@@ -191,7 +220,7 @@ export const useAnimationSetup = (mountRef) => {
        top: "60%",
        xPercent: -50,
        yPercent: -50,
-       scale: 2, // Decrease to 50% zoom in center
+       scale: getDynamicScale(2), // Dynamic scale for center
        ease: COMMON_STYLES.EASE_TYPE,
      });
 
@@ -203,7 +232,7 @@ export const useAnimationSetup = (mountRef) => {
        top: "50%", // Match section 2 text alignment
        xPercent: 0,
        yPercent: -50,
-       scale: TIMELINE_SCALES.SECTION_2,
+       scale: getDynamicScale(TIMELINE_SCALES.SECTION_2),
        ease: COMMON_STYLES.EASE_TYPE,
      });
 
@@ -215,11 +244,11 @@ export const useAnimationSetup = (mountRef) => {
        top: "50%",
        xPercent: -50,
        yPercent: -50,
-       scale: TIMELINE_SCALES.SECTION_3,
+       scale: getDynamicScale(TIMELINE_SCALES.SECTION_3),
        ease: COMMON_STYLES.EASE_TYPE,
      });
 
-     // Section 4: Stay in center but increase scale to 3
+     // Section 4: Stay in center but increase scale dynamically based on screen height
      gifTimeline.to(gifElement, {
        duration: 0.5,
        left: "50%",
@@ -227,7 +256,7 @@ export const useAnimationSetup = (mountRef) => {
        top: "50%",
        xPercent: -50,
        yPercent: -50,
-       scale: TIMELINE_SCALES.SECTION_4,
+       scale: getDynamicScale(TIMELINE_SCALES.SECTION_4),
        ease: COMMON_STYLES.EASE_TYPE,
      });
 
@@ -241,7 +270,7 @@ export const useAnimationSetup = (mountRef) => {
          end: "bottom+=100px center",
          onEnter: () => {
            // Switch to fullscreen image sequence
-           currentFrame = 0; // Start from beginning
+           currentFrame = 1; // Start from beginning (frame_0001.jpg)
            updateVideoState('hero2'); // Update video state
            // Hide video1 container first, then show image sequence
            gsap.to(gifElement, { 
@@ -278,11 +307,24 @@ export const useAnimationSetup = (mountRef) => {
          onUpdate: (self) => {
            // Control image sequence based on scroll progress
            if (isSequenceReady) {
-             const targetFrame = Math.floor(self.progress * (totalFrames - 1));
+             const targetFrame = Math.floor(self.progress * (totalFrames - 1)) + 1; // +1 because frames start from 1
              
              // Only update if frame changed to avoid unnecessary DOM updates
              if (targetFrame !== currentFrame) {
                currentFrame = targetFrame;
+               console.log('Updating to frame:', currentFrame, 'Progress:', self.progress);
+               
+               // Check if we've reached the last frame
+               if (currentFrame >= totalFrames) {
+                 console.log('Last frame reached, switching to ScrollZoomImage');
+                 updateVideoState('scrollZoom');
+                 // Hide image sequence
+                 gsap.to(imageSequenceImg, { 
+                   opacity: 0, 
+                   duration: COMMON_STYLES.TRANSITION_DURATION 
+                 });
+                 return;
+               }
                
                // Check if frame is preloaded, otherwise load it
                if (preloadedFrames.has(currentFrame)) {
@@ -290,12 +332,12 @@ export const useAnimationSetup = (mountRef) => {
                } else {
                  // Load frame on demand
                  const frameNumber = String(currentFrame).padStart(4, '0');
-                 imageSequenceImg.src = `/frames/frame_${frameNumber}.jpg`; // Adjust path and format
+                 imageSequenceImg.src = `/frames/frame_${frameNumber}.jpg`;
                  
                  // Preload next few frames
                  for (let i = 1; i <= 3; i++) {
                    const nextFrame = currentFrame + i;
-                   if (nextFrame < totalFrames && !preloadedFrames.has(nextFrame)) {
+                   if (nextFrame <= totalFrames && !preloadedFrames.has(nextFrame)) {
                      const img = new Image();
                      img.src = `/frames/frame_${String(nextFrame).padStart(4, '0')}.jpg`;
                      preloadedFrames.set(nextFrame, img);
@@ -307,8 +349,41 @@ export const useAnimationSetup = (mountRef) => {
          },
          onLeaveBack: () => {
            // Reset image sequence when leaving section 4
-           currentFrame = 0;
-           imageSequenceImg.src = `/frames/frame_0000.jpg`;
+           currentFrame = 1;
+           imageSequenceImg.src = `/frames/frame_0001.jpg`;
+           // Switch back to image sequence from ScrollZoomImage
+           updateVideoState('hero2');
+           gsap.to(imageSequenceImg, { 
+             opacity: 1, 
+             duration: COMMON_STYLES.TRANSITION_DURATION 
+           });
+         },
+       },
+     });
+
+     // ScrollZoomImage transition trigger
+     gsap.to({}, {
+       scrollTrigger: {
+         trigger: ".section-4",
+         start: "bottom center",
+         end: "bottom+=200px center",
+         onEnter: () => {
+           // Switch to ScrollZoomImage when reaching the end of section 4
+           console.log('Transitioning to ScrollZoomImage');
+           updateVideoState('scrollZoom');
+           gsap.to(imageSequenceImg, { 
+             opacity: 0, 
+             duration: COMMON_STYLES.TRANSITION_DURATION 
+           });
+         },
+         onLeaveBack: () => {
+           // Switch back to image sequence when scrolling back up
+           console.log('Switching back to image sequence');
+           updateVideoState('hero2');
+           gsap.to(imageSequenceImg, { 
+             opacity: 1, 
+             duration: COMMON_STYLES.TRANSITION_DURATION 
+           });
          },
        },
      });
@@ -389,7 +464,10 @@ export const useAnimationSetup = (mountRef) => {
       video1.style.width = newDimensions.width;
       video1.style.height = newDimensions.height;
       
+      // Refresh ScrollTrigger to recalculate dynamic scales
       ScrollTrigger.refresh();
+      
+      console.log('Dynamic scale updated for screen height:', window.innerHeight);
     }, 100);
     window.addEventListener("resize", handleResize);
 

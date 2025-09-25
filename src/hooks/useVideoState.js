@@ -28,6 +28,7 @@ export const useVideoState = () => {
     activeVideo: videoState,
     isVideo2Active: videoState === 'hero2',
     isVideo1Active: videoState === 'hero1',
+    isScrollZoomActive: videoState === 'scrollZoom',
   };
 };
 

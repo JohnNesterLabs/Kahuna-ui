@@ -13,8 +13,8 @@ const Section4 = () => {
         className="text-4"
         style={{ position: "relative", top: "40%", left: "10%", zIndex: 1 }}
       >
-        <h1 style={createResponsiveTextStyle('h1')}>Singularity</h1>
-        <p style={createResponsiveTextStyle('p')}>The future beyond imagination</p>
+        {/* <h1 style={createResponsiveTextStyle('h1')}>Singularity</h1> */}
+        {/* <p style={createResponsiveTextStyle('p')}>The future beyond imagination</p> */}
       </div>
       
       {/* Video Text Overlay - appears only when hero2 video is fullscreen */}
