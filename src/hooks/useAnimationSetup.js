@@ -71,9 +71,10 @@ export const useAnimationSetup = (mountRef) => {
     // Video element with seamless swapping
     const gifElement = document.createElement("div");
     
-    // Create both video elements with identical styling
+    // Create video element for hero1 and image sequence container for hero2
     const video1 = document.createElement("video");
-    const video2 = document.createElement("video");
+    const imageSequenceContainer = document.createElement("div");
+    const imageSequenceImg = document.createElement("img");
     
     // Get responsive video dimensions
     const videoDimensions = getVideoDimensions();
@@ -90,8 +91,8 @@ export const useAnimationSetup = (mountRef) => {
       transition: "opacity 0.3s ease-in-out"
     };
     
-    // Video2 styling (fullscreen video - already responsive)
-    const video2Style = {
+    // Image sequence styling (fullscreen - already responsive)
+    const imageSequenceStyle = {
       width: "100vw",
       height: "100vh",
       objectFit: "cover",
@@ -100,20 +101,45 @@ export const useAnimationSetup = (mountRef) => {
       left: "0",
       opacity: "0",
       transition: "opacity 0.3s ease-in-out",
-      zIndex: "6" // Higher than video1 container to appear on top
+      zIndex: "6", // Higher than video1 container to appear on top
+      willChange: "transform", // Optimize for animations
+      transform: "translateZ(0)", // Force hardware acceleration
+      backfaceVisibility: "hidden", // Optimize rendering
+      perspective: "1000px" // Enable 3D acceleration
     };
     
-    // Apply styling to both videos
+    // Apply styling to video1 and image sequence
     Object.assign(video1.style, video1Style);
-    Object.assign(video2.style, video2Style);
+    Object.assign(imageSequenceImg.style, imageSequenceStyle);
     
     // Set video sources and properties
     video1.src = "/hero1.mp4";
     Object.assign(video1, VIDEO_CONFIG);
     
-    video2.src = "/hero2.mp4";
-    Object.assign(video2, { ...VIDEO_CONFIG, autoplay: false, loop: false });
-    video2.style.opacity = "0"; // Hidden initially
+    // Image sequence configuration
+    const totalFrames = 178; // Updated to match extracted frames from hero2.mp4
+    const frameRate = 30; // Frames per second
+    const sequenceDuration = totalFrames / frameRate; // Duration in seconds
+    let currentFrame = 0;
+    let isSequenceReady = false;
+    let preloadedFrames = new Map(); // Cache for preloaded frames
+    
+    // Preload first few frames for smooth start
+    const preloadFrames = async () => {
+      const framesToPreload = Math.min(10, totalFrames);
+      for (let i = 0; i < framesToPreload; i++) {
+        const img = new Image();
+        img.src = `/frames/frame_${String(i).padStart(4, '0')}.jpg`; // Adjust path and format
+        preloadedFrames.set(i, img);
+      }
+      isSequenceReady = true;
+      console.log('Image sequence ready for scroll control');
+    };
+    
+    // Load initial frame
+    imageSequenceImg.src = `/frames/frame_0000.jpg`; // Adjust path and format
+    imageSequenceImg.style.opacity = "0"; // Hidden initially
+    preloadFrames();
     
     // Container styling (responsive for video1)
     gifElement.style.width = videoDimensions.width;
@@ -126,15 +152,14 @@ export const useAnimationSetup = (mountRef) => {
     gifElement.style.pointerEvents = "none";
     gifElement.style.overflow = "hidden";
     
-    // Add video1 to container, video2 directly to body
+    // Add video1 to container, image sequence directly to body
     gifElement.appendChild(video1);
     document.body.appendChild(gifElement);
-    document.body.appendChild(video2);
+    document.body.appendChild(imageSequenceImg);
     gifMesh = gifElement;
     
-    // Preload both videos for seamless swapping
+    // Preload video1 for seamless swapping
     video1.load();
-    video2.load();
 
     // ==================== ANIMATION TIMELINE ====================
     // GIF Timeline (smooth across sections)
@@ -208,22 +233,22 @@ export const useAnimationSetup = (mountRef) => {
 
     // ==================== VIDEO SWAP & SCROLL CONTROL ====================
      
-     // Video swap: Cross-fade from hero1 (small) to hero2 (fullscreen) when section 3 bottom meets section 4 top
+     // Video swap: Cross-fade from hero1 (small) to image sequence (fullscreen) when section 3 bottom meets section 4 top
      gsap.to({}, {
        scrollTrigger: {
          trigger: ".section-3",
          start: "bottom center", // When section 3 bottom reaches center
          end: "bottom+=100px center",
          onEnter: () => {
-           // Switch to fullscreen video2
-           video2.currentTime = 0; // Start from beginning
+           // Switch to fullscreen image sequence
+           currentFrame = 0; // Start from beginning
            updateVideoState('hero2'); // Update video state
-           // Hide video1 container first, then show video2
+           // Hide video1 container first, then show image sequence
            gsap.to(gifElement, { 
              opacity: 0, 
              duration: COMMON_STYLES.TRANSITION_DURATION,
              onComplete: () => {
-               gsap.to(video2, { opacity: 1, duration: COMMON_STYLES.TRANSITION_DURATION });
+               gsap.to(imageSequenceImg, { opacity: 1, duration: COMMON_STYLES.TRANSITION_DURATION });
              }
            });
          },
@@ -231,8 +256,8 @@ export const useAnimationSetup = (mountRef) => {
            // Switch back to small video1
            video1.currentTime = 0; // Reset to beginning
            updateVideoState('hero1'); // Update video state
-           // Hide video2 first, then show video1 container
-           gsap.to(video2, { 
+           // Hide image sequence first, then show video1 container
+           gsap.to(imageSequenceImg, { 
              opacity: 0, 
              duration: COMMON_STYLES.TRANSITION_DURATION,
              onComplete: () => {
@@ -243,24 +268,47 @@ export const useAnimationSetup = (mountRef) => {
        },
      });
 
-     // Scroll-based video playback control (only for hero2 in section 4)
-     gsap.to(video2, {
+     // Scroll-based image sequence control (only for hero2 in section 4)
+     gsap.to(imageSequenceImg, {
        scrollTrigger: {
          trigger: ".section-4",
          start: "top center",
          end: "bottom center",
-         scrub: 1,
+         scrub: true, // Perfect sync with scroll
          onUpdate: (self) => {
-           // Control video2 playback based on scroll progress
-           if (video2 && video2.duration) {
-             video2.currentTime = self.progress * video2.duration;
+           // Control image sequence based on scroll progress
+           if (isSequenceReady) {
+             const targetFrame = Math.floor(self.progress * (totalFrames - 1));
+             
+             // Only update if frame changed to avoid unnecessary DOM updates
+             if (targetFrame !== currentFrame) {
+               currentFrame = targetFrame;
+               
+               // Check if frame is preloaded, otherwise load it
+               if (preloadedFrames.has(currentFrame)) {
+                 imageSequenceImg.src = preloadedFrames.get(currentFrame).src;
+               } else {
+                 // Load frame on demand
+                 const frameNumber = String(currentFrame).padStart(4, '0');
+                 imageSequenceImg.src = `/frames/frame_${frameNumber}.jpg`; // Adjust path and format
+                 
+                 // Preload next few frames
+                 for (let i = 1; i <= 3; i++) {
+                   const nextFrame = currentFrame + i;
+                   if (nextFrame < totalFrames && !preloadedFrames.has(nextFrame)) {
+                     const img = new Image();
+                     img.src = `/frames/frame_${String(nextFrame).padStart(4, '0')}.jpg`;
+                     preloadedFrames.set(nextFrame, img);
+                   }
+                 }
+               }
+             }
            }
          },
          onLeaveBack: () => {
-           // Reset video2 when leaving section 4
-           if (video2) {
-             video2.currentTime = 0;
-           }
+           // Reset image sequence when leaving section 4
+           currentFrame = 0;
+           imageSequenceImg.src = `/frames/frame_0000.jpg`;
          },
        },
      });
@@ -357,6 +405,9 @@ export const useAnimationSetup = (mountRef) => {
        }
        if (gifMesh && gifMesh.parentNode) {
          gifMesh.parentNode.removeChild(gifMesh);
+       }
+       if (imageSequenceImg && imageSequenceImg.parentNode) {
+         imageSequenceImg.parentNode.removeChild(imageSequenceImg);
        }
      };
   }, []);
