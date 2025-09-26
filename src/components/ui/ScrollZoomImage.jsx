@@ -13,6 +13,75 @@ export default function ScrollZoomImage() {
   const cardRefs = useRef({});
   const containerRef = useRef(null);
 
+  // Add CSS animations
+  React.useEffect(() => {
+    const style = document.createElement('style');
+    style.textContent = `
+      @keyframes cardPulse {
+        0%, 100% {
+          box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+          border-color: grey;
+        }
+        50% {
+          box-shadow: 0 6px 20px rgba(255, 255, 255, 0.1);
+          border-color: rgba(255, 255, 255, 0.4);
+        }
+      }
+      
+      @keyframes textGlow {
+        0% {
+          text-shadow: 0 0 10px rgba(255,255,255,0.3);
+        }
+        100% {
+          text-shadow: 0 0 15px rgba(255,255,255,0.6);
+        }
+      }
+      
+      @keyframes cardFloat {
+        0%, 100% {
+          transform: translate(-50%, -50%) translateY(0px);
+        }
+        50% {
+          transform: translate(-50%, -50%) translateY(-5px);
+        }
+      }
+      
+      @keyframes particleMove {
+        0% {
+          transform: translateX(0px) translateY(0px);
+        }
+        25% {
+          transform: translateX(200px) translateY(0px);
+        }
+        50% {
+          transform: translateX(200px) translateY(50px);
+        }
+        75% {
+          transform: translateX(0px) translateY(50px);
+        }
+        100% {
+          transform: translateX(0px) translateY(0px);
+        }
+      }
+      
+      @keyframes particleGlow {
+        0%, 100% {
+          opacity: 0.6;
+          box-shadow: 0 0 5px rgba(255, 255, 255, 0.8);
+        }
+        50% {
+          opacity: 1;
+          box-shadow: 0 0 15px rgba(255, 255, 255, 1);
+        }
+      }
+    `;
+    document.head.appendChild(style);
+    
+    return () => {
+      document.head.removeChild(style);
+    };
+  }, []);
+
   useEffect(() => {
     let ticking = false;
     let scrollZoomStartPosition = window.scrollY; // Store the scroll position when component mounts
@@ -184,10 +253,79 @@ export default function ScrollZoomImage() {
                 transition: 'all 0.3s ease',
                 boxShadow: '0 4px 15px rgba(0, 0, 0, 0.3)',
                 backdropFilter: 'blur(5px)',
+                animation: 'cardPulse 3s ease-in-out infinite, cardFloat 4s ease-in-out infinite',
+                cursor: 'pointer',
               }}
-            >
-              {p.text}
-            </div>
+              >
+                {/* Animated particles moving around the border */}
+                <div style={{
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  width: '100%',
+                  height: '100%',
+                  overflow: 'hidden',
+                  borderRadius: '8px',
+                  pointerEvents: 'none',
+                }}>
+                  {/* Particle 1 - Top to Right */}
+                  <div style={{
+                    position: 'absolute',
+                    top: '2px',
+                    left: '2px',
+                    width: '4px',
+                    height: '4px',
+                    background: 'rgba(255, 255, 255, 0.8)',
+                    borderRadius: '50%',
+                    animation: 'particleMove 8s linear infinite, particleGlow 2s ease-in-out infinite',
+                  }} />
+                  
+                  {/* Particle 2 - Right to Bottom */}
+                  <div style={{
+                    position: 'absolute',
+                    top: '2px',
+                    left: '2px',
+                    width: '3px',
+                    height: '3px',
+                    background: 'rgba(255, 255, 255, 0.6)',
+                    borderRadius: '50%',
+                    animation: 'particleMove 8s linear infinite 2s, particleGlow 2.5s ease-in-out infinite',
+                  }} />
+                  
+                  {/* Particle 3 - Bottom to Left */}
+                  <div style={{
+                    position: 'absolute',
+                    top: '2px',
+                    left: '2px',
+                    width: '5px',
+                    height: '5px',
+                    background: 'rgba(255, 255, 255, 0.7)',
+                    borderRadius: '50%',
+                    animation: 'particleMove 8s linear infinite 4s, particleGlow 1.8s ease-in-out infinite',
+                  }} />
+                  
+                  {/* Particle 4 - Left to Top */}
+                  <div style={{
+                    position: 'absolute',
+                    top: '2px',
+                    left: '2px',
+                    width: '3px',
+                    height: '3px',
+                    background: 'rgba(255, 255, 255, 0.5)',
+                    borderRadius: '50%',
+                    animation: 'particleMove 8s linear infinite 6s, particleGlow 3s ease-in-out infinite',
+                  }} />
+                </div>
+                
+                <div style={{
+                  animation: 'textGlow 2s ease-in-out infinite alternate',
+                  textShadow: '0 0 10px rgba(255,255,255,0.3)',
+                  position: 'relative',
+                  zIndex: 2,
+                }}>
+                  {p.text}
+                </div>
+              </div>
           </React.Fragment>
         ))}
       </div>
