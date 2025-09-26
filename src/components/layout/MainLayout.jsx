@@ -19,7 +19,7 @@ const MainLayout = ({ children }) => {
       {children}
       
       {/* Fluid Cursor Effect */}
-      {/* <FluidCursor /> */}
+      <FluidCursor />
     </div>
   );
 };
